@@ -40,7 +40,7 @@ export default function ServicesPage() {
     <main style={{ height: "100vh", display: "flex", flexDirection: "column", background: "#f5f4f0", overflow: "scroll", fontFamily: "inherit" }}>
 
       {/* ── Image Header ── */}
-      <header style={{ position: "relative", height: "40%", overflow: "hidden", flexShrink: 0 }}>
+      <header className="services-header" style={{ position: "relative", overflow: "hidden", flexShrink: 0 }}>
         <img
           src="https://images.unsplash.com/photo-1494412574643-ff11b0a5c1c3?q=90&w=2400"
           alt="Port"
@@ -59,7 +59,7 @@ export default function ServicesPage() {
       </header>
 
       {/* ── Cards ── */}
-      <section style={{ flex: 1, display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12, padding: "16px", boxSizing: "border-box" }}>
+      <section style={{ flex: 1, display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: 12, padding: "16px", boxSizing: "border-box" }}>
         {SERVICES.map((svc, i) => {
           const on = hovered === i;
           return (

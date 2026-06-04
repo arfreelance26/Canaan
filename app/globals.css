@@ -152,4 +152,17 @@ body {
 .delay-400 { animation-delay: 400ms; }
 .delay-500 { animation-delay: 500ms; }
 
+/* Responsive header for services page */
+.services-header {
+  height: 40vh;
+}
+@media (max-width: 640px) {
+  .services-header {
+    height: 30vh;
+  }
+  .services-header h1 {
+    font-size: clamp(1.5rem, 5vw, 2.5rem);
+  }
+}
+
 

@@ -3,10 +3,7 @@ import { useRef, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowRight } from "lucide-react";
 import useFadeIn from "../hooks/useFadeIn";
-import team2 from "../../company photos/team2.jpeg";
-import team3 from "../../company photos/team3.jpeg";
-import team4 from "../../company photos/team4.jpeg";
-import team5 from "../../company photos/team5.jpeg";
+
 
 const STATS = [
   { num: "100+", label: "Team members" },
@@ -21,7 +18,12 @@ export default function AboutTeaserSection() {
   const isVisible = useFadeIn(sectionRef, 0.08);
 
   // rotating background images
-  const images = [team2.src, team3.src, team4.src, team5.src];
+  const images = [
+    "/company_photos/team2.jpeg",
+    "/company_photos/team3.jpeg",
+    "/company_photos/team4.jpeg",
+    "/company_photos/team5.jpeg"
+  ];
   const [bgIndex, setBgIndex] = useState(0);
   useEffect(() => {
     const id = setInterval(() => setBgIndex((i) => (i + 1) % images.length), 3000);

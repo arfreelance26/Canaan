@@ -4,18 +4,17 @@ import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { Anchor } from "lucide-react";
 import Image from "next/image";
-import companylogo from "../../company photos/companylogo.png";
+
 
 const NAV_ITEMS = ["Home", "About", "Service", "Cargo", "Clients", "Contact"];
 
 // ── Hot reload for logo position tweak ──
 function LogoPlaceholder() {
   return (
-    <Image 
-      src={companylogo} 
+    <img 
+      src="/company_photos/companylogo.png" 
       alt="Canaan Logo" 
       className="h-14 sm:h-[68px] w-auto object-contain ml-2 sm:ml-3"
-      priority
     />
   );
 }
@@ -254,21 +253,22 @@ export default function Navbar() {
           <span className={`block h-0.5 w-5 bg-neutral-900 transition-all duration-200 ${mobileOpen ? "-rotate-45 -translate-y-2" : ""}`} />
         </button>
 
-        {/* Mobile dropdown nav */}
-        {mobileOpen && (
-          <div className="absolute top-20 left-4 right-4 z-50 sm:hidden flex flex-col bg-[#f5f4f0] backdrop-blur-md border border-black/10 rounded-xl px-4 py-3 gap-1">
-            {NAV_ITEMS.map((item) => (
-              <button
-                key={item}
-                onClick={() => navigateTo(item)}
-                className="text-left text-neutral-900 font-medium text-[15px] py-2 border-b border-black/5 last:border-0 hover:text-neutral-500 transition-colors"
-              >
-                {item}
-              </button>
-            ))}
-          </div>
-        )}
       </div>
+
+      {/* Mobile dropdown nav - Moved outside to be fixed to viewport */}
+      {mobileOpen && (
+        <div className="fixed top-20 left-4 right-4 z-50 sm:hidden flex flex-col bg-[#f5f4f0] backdrop-blur-md border border-black/10 rounded-xl px-4 py-3 gap-1 shadow-2xl">
+          {NAV_ITEMS.map((item) => (
+            <button
+              key={item}
+              onClick={() => navigateTo(item)}
+              className="text-left text-neutral-900 font-medium text-[15px] py-2 border-b border-black/5 last:border-0 hover:text-neutral-500 transition-colors"
+            >
+              {item}
+            </button>
+          ))}
+        </div>
+      )}
     </>
   );
 }

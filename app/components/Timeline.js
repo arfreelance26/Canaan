@@ -3,17 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import timeline1 from "../../company photos/timeline1.png";
-import timeline2 from "../../company photos/timeline2.png";
-import timeline3a from "../../company photos/timeline 3a.png";
-import timeline3b from "../../company photos/timeline 3b.png";
-import timeline3c from "../../company photos/timeline 3c.png";
-import timeline4 from "../../company photos/timeline4.png";
-import timeline5a from "../../company photos/timeline5a.png";
-import timeline5b from "../../company photos/timeline5b.png";
-import timeline5c from "../../company photos/timeline5c.png";
-import timeline5d from "../../company photos/timeline5d.png";
-import trucks1 from "../../company photos/trucks1.png";
+
 import {
   Anchor, Globe, Truck, MapPin, Award, ArrowRight,
 } from "lucide-react";
@@ -31,7 +21,7 @@ const CHAPTERS = [
     body: "Founded in Tuticorin, Tamil Nadu — a humble port city with global ambitions. Canaan Global International began with few trucks and an unshakeable commitment to reliable freight.",
     scripture: "Remember the Lord your God, for it is He who gives you the ability to produce wealth...",
     scriptureRef: "Deuteronomy 8:18",
-    photo: timeline1.src,
+    photo: "/company_photos/timeline1.png",
     stat: { num: "2009", label: "Year founded" },
     accent: "#1A5276",
     icon: Anchor,
@@ -44,7 +34,7 @@ const CHAPTERS = [
     label: "EARLY GROWTH",
     heading: "Building the\nfoundation.",
     body: "The fleet grew. The routes expanded. Word spread that Canaan delivered on time, every time. South India's industrial corridors became our home territory.",
-    photo: timeline2.src,
+    photo: "/company_photos/timeline2.png",
     stat: { num: "12", label: "Trucks by 2013" },
     accent: "#1E8449",
     icon: Truck,
@@ -58,7 +48,7 @@ const CHAPTERS = [
     heading: "Scaling across\nIndia.",
     body: "Port-to-port. City-to-city. Warehouse to warehouse. Our network stretched from Chennai to Mumbai, connecting manufacturers with ports and global supply chains.",
     photo: "https://images.unsplash.com/photo-1519003722824-194d4455a60c?q=80&w=2000",
-    carouselImages: [timeline3a.src, timeline3b.src, timeline3c.src],
+    carouselImages: ["/company_photos/timeline 3a.png", "/company_photos/timeline 3b.png", "/company_photos/timeline 3c.png"],
     stat: { num: "4", label: "Major ports served" },
     accent: "#6C3483",
     icon: MapPin,
@@ -71,7 +61,7 @@ const CHAPTERS = [
     label: "GOING GLOBAL",
     heading: "Beyond borders.\nBeyond limits.",
     body: "Freight forwarding, customs clearance, and international shipping. Canaan became a full-service global logistics partner — moving goods across continents with precision.",
-    photo: timeline4.src,
+    photo: "/company_photos/timeline4.png",
     stat: { num: "30+", label: "Countries served" },
     accent: "#D4A017",
     icon: Globe,
@@ -84,7 +74,7 @@ const CHAPTERS = [
     label: "TODAY",
     heading: "A legacy of\nmovement.",
     body: "Four divisions. Over 50,000 shipments. 42 vehicles strong. Canaan Global continues to redefine logistics — connecting India to the world, one shipment at a time.",
-    carouselImages: [timeline5a.src, timeline5b.src, timeline5c.src, timeline5d.src],
+    carouselImages: ["/company_photos/timeline5a.png", "/company_photos/timeline5b.png", "/company_photos/timeline5c.png", "/company_photos/timeline5d.png"],
     stat: { num: "50K+", label: "Shipments delivered" },
     accent: "#C0392B",
     icon: Award,
@@ -178,7 +168,7 @@ function ImageCarousel({ images, alt }) {
       >
         {images.map((src, i) => (
           <div key={i} className="relative w-full h-full flex-shrink-0">
-            <Image src={src} alt={`${alt} ${i + 1}`} fill className="object-cover" />
+            <Image src={src} alt={`${alt} ${i + 1}`} fill sizes="(max-width: 1024px) 100vw, 50vw" className="object-cover" />
           </div>
         ))}
       </div>
@@ -357,7 +347,7 @@ export default function TimelineSection() {
         }}
       >
         <Image
-          src={trucks1}
+          src="/company_photos/trucks1.png"
           alt="Canaan Global — 15 years of logistics"
           fill
           className="object-cover object-center"

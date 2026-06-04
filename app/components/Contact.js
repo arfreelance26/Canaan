@@ -1,48 +1,162 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useCallback } from "react";
 import { ArrowRight, Mail, Phone, MapPin, Clock } from "lucide-react";
+import emailjs from "@emailjs/browser";
 import useFadeIn from "../hooks/useFadeIn";
 
+
+// ─────────────────────────────────────────────
+// CONFIG — move these to .env.local
+// NEXT_PUBLIC_EMAILJS_SERVICE_ID
+// NEXT_PUBLIC_EMAILJS_TEMPLATE_ID
+// NEXT_PUBLIC_EMAILJS_PUBLIC_KEY
+// ─────────────────────────────────────────────
+const EMAILJS_SERVICE_ID  = process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID;
+const EMAILJS_TEMPLATE_ID = process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID;
+const EMAILJS_PUBLIC_KEY  = process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY;
+
 const CONTACT_INFO = [
-  { icon: Mail, label: "Email us", value: "canaanglobal@canaanglobal.com" },
-  { icon: Phone, label: "Call us", value: "+91 90470 12891" },
-  { icon: MapPin, label: "Head office", value: "Tuticorin, India" },
-  { icon: Clock, label: "Working hours", value: "Mon–Sat, 9am–6pm" },
+  { icon: Mail,   label: "Email us",      value: "canaanglobal@canaanglobal.com" },
+  { icon: Phone,  label: "Call us",       value: "+91 90470 12891" },
+  { icon: MapPin, label: "Head office",   value: "Tuticorin, India" },
+  { icon: Clock,  label: "Working hours", value: "Mon–Sat, 9am–6pm" },
 ];
+
+const ALLOWED_SERVICES = [
+  "Transportation Services",
+  "Cargo Management",
+  "Warehousing",
+  "Documentation & Compliance",
+  "Lashing & Fumigation Services",
+  "Other",
+];
+
+// ── Validation ──────────────────────────────
+const EMAIL_RE   = /^[^\s@]{1,64}@[^\s@]{1,255}\.[^\s@]{2,}$/;
+const PHONE_RE   = /^[+\d\s\-().]{7,20}$/;
+// Honeypot field name — bots fill it, humans don't
+const HONEYPOT   = "website"; // kept intentionally generic
+
+function sanitize(str) {
+  // Strip HTML tags and trim; prevents template injection
+  return str.replace(/<[^>]*>/g, "").trim().slice(0, 2000);
+}
+
+function validate(form) {
+  const errors = {};
+  if (!form.name.trim())                    errors.name    = "Name is required.";
+  else if (form.name.trim().length > 120)   errors.name    = "Name too long.";
+
+  if (!form.email.trim())                   errors.email   = "Email is required.";
+  else if (!EMAIL_RE.test(form.email))      errors.email   = "Invalid email address.";
+
+  if (form.phone && !PHONE_RE.test(form.phone)) errors.phone = "Invalid phone number.";
+
+  if (form.service && !ALLOWED_SERVICES.includes(form.service))
+                                            errors.service = "Invalid service selection.";
+
+  if (!form.message.trim())                 errors.message = "Message is required.";
+  else if (form.message.trim().length < 10) errors.message = "Message too short (min 10 chars).";
+
+  return errors;
+}
+
+// ── Rate limiting (client-side, per session) ─
+// Purpose: stops accidental double-submits and rapid automated retries.
+// Server-side rate limiting must be configured in EmailJS dashboard.
+const RATE_LIMIT_MS = 60_000; // 1 submission per minute per session
+let lastSubmitTime  = 0;
 
 export default function ContactSection() {
   const sectionRef = useRef(null);
-  const isVisible = useFadeIn(sectionRef, 0.05);
+  const isVisible  = useFadeIn(sectionRef, 0.05);
 
-  const [form, setForm] = useState({
-    name: "",
-    email: "",
-    phone: "",
-    service: "",
-    message: "",
+  const [form, setForm]           = useState({
+    name: "", email: "", phone: "", service: "", message: "",
+    [HONEYPOT]: "", // honeypot — must stay empty
   });
-  const [submitted, setSubmitted] = useState(false);
+  const [errors, setErrors]       = useState({});
+  const [status, setStatus]       = useState("idle"); // idle | sending | success | error
+  const [errorMsg, setErrorMsg]   = useState("");
 
-  const handleChange = (e) =>
-    setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+  const handleChange = useCallback((e) => {
+    const { name, value } = e.target;
+    setForm((prev) => ({ ...prev, [name]: value }));
+    // Clear field error on change
+    if (errors[name]) setErrors((prev) => { const n = { ...prev }; delete n[name]; return n; });
+  }, [errors]);
 
-  const handleSubmit = () => {
-    if (!form.name || !form.email || !form.message) return;
-    setSubmitted(true);
+  const handleSubmit = async () => {
+    // 1. Honeypot check — if filled, silently discard
+    if (form[HONEYPOT]) return;
+
+    // 2. Client-side rate limit
+    const now = Date.now();
+    if (now - lastSubmitTime < RATE_LIMIT_MS) {
+      setErrorMsg("Please wait a moment before sending another message.");
+      setStatus("error");
+      return;
+    }
+
+    // 3. Validate
+    const validationErrors = validate(form);
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
+      return;
+    }
+
+    setStatus("sending");
+    setErrorMsg("");
+
+    // 4. Sanitize before send
+    const templateParams = {
+      from_name:    sanitize(form.name),
+      from_email:   sanitize(form.email),
+      from_phone:   sanitize(form.phone)   || "Not provided",
+      service_type: ALLOWED_SERVICES.includes(form.service) ? form.service : "Not specified",
+      message:      sanitize(form.message),
+    };
+
+    try {
+      await emailjs.send(
+        EMAILJS_SERVICE_ID,
+        EMAILJS_TEMPLATE_ID,
+        templateParams,
+        { publicKey: EMAILJS_PUBLIC_KEY }
+      );
+      lastSubmitTime = Date.now();
+      setStatus("success");
+    } catch (err) {
+      // Do not expose internal error details to the user
+      console.error("EmailJS error:", err);
+      setErrorMsg("Something went wrong. Please try again or email us directly.");
+      setStatus("error");
+    }
   };
+
+  const handleReset = () => {
+    setForm({ name: "", email: "", phone: "", service: "", message: "", [HONEYPOT]: "" });
+    setErrors({});
+    setStatus("idle");
+    setErrorMsg("");
+  };
+
+  const inputBase =
+    "bg-[#f5f4f0] border rounded-xl px-4 py-3 text-sm text-neutral-900 placeholder:text-neutral-300 outline-none focus:bg-white focus:border-neutral-900 focus:ring-4 focus:ring-neutral-900/5 transition-[background-color,border-color,box-shadow] duration-300";
+  const inputClass = (field) =>
+    `${inputBase} ${errors[field] ? "border-red-400" : "border-black/10"}`;
 
   return (
     <section
       ref={sectionRef}
       id="contact"
-      className="relative bg-[#f5f4f0] font-sans flex flex-col h-screen p-4 sm:p-5 gap-2 overflow-hidden"
+      className="relative bg-[#f5f4f0] font-sans flex flex-col min-h-screen lg:h-screen p-4 sm:p-5 gap-2 overflow-auto lg:overflow-hidden"
     >
-
       {/* ── HEADER ── */}
       <div className={`text-center shrink-0 transition-[opacity,transform] duration-700 ease-out ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}>
         <p className="text-[11px] font-semibold tracking-[0.22em] uppercase text-amber-700/60 mb-1">
-          — Get in Touch
+          — Get in Touch
         </p>
         <p className="text-[18px] sm:text-[26px] font-medium tracking-[0.08em] uppercase text-neutral-500">
           Contact Us
@@ -69,23 +183,17 @@ export default function ContactSection() {
                 }}
                 className="group relative rounded-2xl overflow-hidden bg-white border border-black/[0.08] px-4 py-4 flex flex-col justify-between bento-card"
               >
-                {/* Top icon */}
                 <div className="w-9 h-9 rounded-full bg-neutral-50 border border-black/[0.08] flex items-center justify-center mb-3 group-hover:bg-[#1a1916] transition-colors duration-300">
                   <Icon size={15} className="text-neutral-400 group-hover:text-white transition-colors" />
                 </div>
-
                 <div>
-                  <p className="text-[10px] font-medium tracking-[0.1em] uppercase text-neutral-400 mb-0.5">
-                    {label}
-                  </p>
-                  <p className="text-sm font-semibold text-neutral-900 tracking-tight leading-snug">
-                    {value}
-                  </p>
+                  <p className="text-[10px] font-medium tracking-[0.1em] uppercase text-neutral-400 mb-0.5">{label}</p>
+                  <p className="text-sm font-semibold text-neutral-900 tracking-tight leading-snug">{value}</p>
                 </div>
               </div>
             ))}
-
           </div>
+
           {/* Map card */}
           <div
             style={{
@@ -98,41 +206,22 @@ export default function ContactSection() {
             }}
             className="flex-1 min-h-0 relative rounded-2xl overflow-hidden group bento-card"
           >
-            {/* Google Maps iframe */}
             <iframe
               src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3943.5562115789494!2d78.04090921090196!3d8.733620491280172!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3b03efdb0585f415%3A0x236d4e35580fc822!2sCanaan%20Global%20International!5e0!3m2!1sen!2sin!4v1780553582286!5m2!1sen!2sin"
               width="100%"
               height="100%"
-              style={{
-                position: "absolute",
-                inset: 0,
-                border: 0,
-                filter: "grayscale(20%) contrast(1.05)",
-              }}
+              style={{ position: "absolute", inset: 0, border: 0, filter: "grayscale(20%) contrast(1.05)" }}
               allowFullScreen=""
               loading="lazy"
               referrerPolicy="no-referrer-when-downgrade"
               title="Canaan Global International — Tuticorin Head Office"
             />
-
-            {/* Light overlay so overlays are readable */}
             <div className="absolute inset-0 bg-white/10 pointer-events-none" />
-
-            {/* TOP LEFT */}
-
-
-            {/* BOTTOM */}
             <div className="absolute bottom-0 left-0 right-0 bg-white/90 backdrop-blur-sm px-4 py-4 rounded-t-2xl z-10 flex items-center justify-between pointer-events-none">
               <div>
-                <p className="text-[10px] font-medium tracking-[0.1em] uppercase text-neutral-400 mb-0.5">
-                  Head office
-                </p>
-                <p className="text-base font-bold tracking-[-0.02em] text-neutral-900">
-                  Tuticorin, Tamil Nadu
-                </p>
-                <p className="text-[11px] text-neutral-400 mt-0.5 tracking-tight">
-                  3/802-124, Zion Nagar, Puthukottai — 628 103
-                </p>
+                <p className="text-[10px] font-medium tracking-[0.1em] uppercase text-neutral-400 mb-0.5">Head office</p>
+                <p className="text-base font-bold tracking-[-0.02em] text-neutral-900">Tuticorin, Tamil Nadu</p>
+                <p className="text-[11px] text-neutral-400 mt-0.5 tracking-tight">3/802-124, Zion Nagar, Puthukottai — 628 103</p>
               </div>
               <a
                 href="https://maps.google.com/?q=Tuticorin,Tamil+Nadu+628103"
@@ -158,133 +247,140 @@ export default function ContactSection() {
           }}
           className="lg:col-span-3 flex flex-col rounded-2xl overflow-hidden bg-white border border-black/[0.08] min-h-0"
         >
-
-          {/* Form card header */}
           <div className="px-5 sm:px-6 pt-4 pb-3 border-b border-black/[0.06] shrink-0">
-            <p className="text-[9px] font-semibold tracking-[0.18em] uppercase text-amber-700/60 mb-1">
-              — Direct inquiry
-            </p>
+            <p className="text-[9px] font-semibold tracking-[0.18em] uppercase text-amber-700/60 mb-1">— Direct inquiry</p>
             <p className="text-[15px] font-semibold tracking-[-0.01em] text-neutral-900">
               Tell us what you need — we handle the rest.
             </p>
           </div>
 
-          {submitted ? (
-            // ── Success state ──
+          {status === "success" ? (
             <div className="flex flex-col items-center justify-center h-full min-h-[460px] px-8 text-center gap-4">
               <div className="w-14 h-14 rounded-full bg-emerald-50 border border-emerald-200 flex items-center justify-center mb-2 animate-bounce">
                 <span className="text-2xl text-emerald-600">✓</span>
               </div>
-              <h3 className="text-xl font-bold tracking-[-0.02em] text-neutral-900">
-                Message received!
-              </h3>
+              <h3 className="text-xl font-bold tracking-[-0.02em] text-neutral-900">Message received!</h3>
               <p className="text-sm text-neutral-400 leading-relaxed max-w-xs">
-                Thank you for reaching out to Canaan Global International.
-                Our team will get back to you within 24 hours.
+                Thank you for reaching out to Canaan Global International. Our team will get back to you within 24 hours.
               </p>
               <button
-                onClick={() => { setSubmitted(false); setForm({ name: "", email: "", phone: "", service: "", message: "" }); }}
+                onClick={handleReset}
                 className="mt-2 flex items-center gap-2 border border-black/15 text-neutral-700 text-sm font-medium px-5 py-2.5 rounded-full hover:bg-black hover:text-white hover:border-black transition-[background-color,color,border-color] duration-300 active:scale-95"
               >
                 Send another message
               </button>
             </div>
           ) : (
-            // ── Form ──
             <div className="flex flex-col flex-1 min-h-0 px-5 sm:px-6 pt-4 pb-4">
 
-              {/* Name + Email row */}
+              {/* ── Honeypot — hidden from real users, visible to bots ── */}
+              <div aria-hidden="true" style={{ position: "absolute", left: "-9999px", opacity: 0, pointerEvents: "none" }}>
+                <label htmlFor={HONEYPOT}>Website</label>
+                <input
+                  id={HONEYPOT}
+                  name={HONEYPOT}
+                  type="text"
+                  value={form[HONEYPOT]}
+                  onChange={handleChange}
+                  tabIndex={-1}
+                  autoComplete="off"
+                />
+              </div>
+
+              {/* Name + Email */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-2">
-                <div className={`flex flex-col gap-1.5 transition-[opacity,transform] duration-500 ease-out ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
-                  }`} style={{ transitionDelay: isVisible ? "100ms" : "0ms" }}>
-                  <label className="text-[10px] font-medium tracking-[0.1em] uppercase text-neutral-400">
-                    Full name
-                  </label>
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-[10px] font-medium tracking-[0.1em] uppercase text-neutral-400">Full name *</label>
                   <input
                     name="name"
                     value={form.name}
                     onChange={handleChange}
                     placeholder="Your name"
-                    className="bg-[#f5f4f0] border border-black/10 rounded-xl px-4 py-3 text-sm text-neutral-900 placeholder:text-neutral-300 outline-none focus:bg-white focus:border-neutral-900 focus:ring-4 focus:ring-neutral-900/5 transition-[background-color,border-color,box-shadow] duration-300"
+                    maxLength={120}
+                    autoComplete="name"
+                    className={inputClass("name")}
                   />
+                  {errors.name && <p className="text-[11px] text-red-500">{errors.name}</p>}
                 </div>
-                <div className={`flex flex-col gap-1.5 transition-[opacity,transform] duration-500 ease-out ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
-                  }`} style={{ transitionDelay: isVisible ? "150ms" : "0ms" }}>
-                  <label className="text-[10px] font-medium tracking-[0.1em] uppercase text-neutral-400">
-                    Email address
-                  </label>
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-[10px] font-medium tracking-[0.1em] uppercase text-neutral-400">Email address *</label>
                   <input
                     name="email"
                     value={form.email}
                     onChange={handleChange}
                     placeholder="Your Email"
-                    className="bg-[#f5f4f0] border border-black/10 rounded-xl px-4 py-3 text-sm text-neutral-900 placeholder:text-neutral-300 outline-none focus:bg-white focus:border-neutral-900 focus:ring-4 focus:ring-neutral-900/5 transition-[background-color,border-color,box-shadow] duration-300"
+                    type="email"
+                    maxLength={254}
+                    autoComplete="email"
+                    className={inputClass("email")}
                   />
+                  {errors.email && <p className="text-[11px] text-red-500">{errors.email}</p>}
                 </div>
               </div>
 
-              {/* Phone + Service row */}
+              {/* Phone + Service */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-2">
-                <div className={`flex flex-col gap-1.5 transition-[opacity,transform] duration-500 ease-out ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
-                  }`} style={{ transitionDelay: isVisible ? "200ms" : "0ms" }}>
-                  <label className="text-[10px] font-medium tracking-[0.1em] uppercase text-neutral-400">
-                    Phone number
-                  </label>
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-[10px] font-medium tracking-[0.1em] uppercase text-neutral-400">Phone number</label>
                   <input
                     name="phone"
                     value={form.phone}
                     onChange={handleChange}
                     placeholder="Your Phone Number"
-                    className="bg-[#f5f4f0] border border-black/10 rounded-xl px-4 py-3 text-sm text-neutral-900 placeholder:text-neutral-300 outline-none focus:bg-white focus:border-neutral-900 focus:ring-4 focus:ring-neutral-900/5 transition-[background-color,border-color,box-shadow] duration-300"
+                    type="tel"
+                    maxLength={20}
+                    autoComplete="tel"
+                    className={inputClass("phone")}
                   />
+                  {errors.phone && <p className="text-[11px] text-red-500">{errors.phone}</p>}
                 </div>
-                <div className={`flex flex-col gap-1.5 transition-[opacity,transform] duration-500 ease-out ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
-                  }`} style={{ transitionDelay: isVisible ? "250ms" : "0ms" }}>
-                  <label className="text-[10px] font-medium tracking-[0.1em] uppercase text-neutral-400">
-                    Service needed
-                  </label>
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-[10px] font-medium tracking-[0.1em] uppercase text-neutral-400">Service needed</label>
                   <select
                     name="service"
                     value={form.service}
                     onChange={handleChange}
-                    className="bg-[#f5f4f0] border border-black/10 rounded-xl px-4 py-3 text-sm text-neutral-900 outline-none focus:bg-white focus:border-neutral-900 focus:ring-4 focus:ring-neutral-900/5 transition-[background-color,border-color,box-shadow] duration-300 appearance-none cursor-pointer"
+                    className={`${inputClass("service")} appearance-none cursor-pointer`}
                   >
                     <option value="" disabled>Select a service</option>
-                    <option>Transportation Services</option>
-                    <option>Cargo Management</option>
-                    <option>Warehousing</option>
-                    <option>Documentation & Compliance</option>
-                    <option>Lashing & Fumigation Services</option>
-                    <option>Other</option>
+                    {ALLOWED_SERVICES.map((s) => <option key={s}>{s}</option>)}
                   </select>
+                  {errors.service && <p className="text-[11px] text-red-500">{errors.service}</p>}
                 </div>
               </div>
 
               {/* Message */}
-              <div className={`flex flex-col gap-1.5 mb-3 transition-[opacity,transform] duration-500 ease-out ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
-                }`} style={{ transitionDelay: isVisible ? "300ms" : "0ms" }}>
-                <label className="text-[10px] font-medium tracking-[0.1em] uppercase text-neutral-400">
-                  Your message
-                </label>
+              <div className="flex flex-col gap-1.5 mb-3">
+                <label className="text-[10px] font-medium tracking-[0.1em] uppercase text-neutral-400">Your message *</label>
                 <textarea
                   name="message"
                   value={form.message}
                   onChange={handleChange}
                   rows={3}
+                  maxLength={2000}
                   placeholder="Tell us about your shipment requirements..."
-                  className="bg-[#f5f4f0] border border-black/10 rounded-xl px-4 py-3 text-sm text-neutral-900 placeholder:text-neutral-300 outline-none focus:bg-white focus:border-neutral-900 focus:ring-4 focus:ring-neutral-900/5 transition-[background-color,border-color,box-shadow] duration-300 resize-none"
+                  className={`${inputClass("message")} resize-none`}
                 />
+                {errors.message && <p className="text-[11px] text-red-500">{errors.message}</p>}
+                <p className="text-[10px] text-neutral-300 text-right">{form.message.length}/2000</p>
               </div>
+
+              {/* Global error */}
+              {status === "error" && (
+                <p className="text-[12px] text-red-500 mb-2">{errorMsg}</p>
+              )}
 
               {/* Submit */}
               <button
                 onClick={handleSubmit}
-                className="group flex items-center justify-center gap-2 bg-neutral-900 text-white text-sm font-semibold px-5 py-3 rounded-2xl hover:bg-neutral-800 transition-colors duration-300 w-full active:scale-[0.98] mt-1"
+                disabled={status === "sending"}
+                className="group flex items-center justify-center gap-2 bg-neutral-900 text-white text-sm font-semibold px-5 py-3 rounded-2xl hover:bg-neutral-800 transition-colors duration-300 w-full active:scale-[0.98] mt-1 disabled:opacity-60 disabled:cursor-not-allowed"
               >
-                Send message <ArrowRight size={14} className="group-hover:translate-x-1.5 transition-transform duration-300" />
+                {status === "sending" ? "Sending…" : <>Send message <ArrowRight size={14} className="group-hover:translate-x-1.5 transition-transform duration-300" /></>}
               </button>
             </div>
           )}
+          
         </div>
       </div>
     </section>

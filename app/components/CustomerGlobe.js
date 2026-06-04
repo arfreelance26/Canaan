@@ -4,7 +4,7 @@ import { ArrowRight } from "lucide-react";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import Image from "next/image";
-import arun2 from "../../company photos/arun2.png";
+
 
 const Globe = dynamic(() => import("react-globe.gl"), { ssr: false });
 
@@ -276,7 +276,7 @@ export default function CustomerGlobeSection() {
         >
           {/* Portrait */}
           <div style={{ width: 120, height: 120, flexShrink: 0, position: "relative", borderRadius: 9999, overflow: "hidden", boxShadow: "0 8px 24px rgba(0,0,0,0.12)", border: "2px solid rgba(210,165,45,0.10)" }}>
-            <Image src={arun2} alt="Arun Sam Alfred" fill className="object-cover" />
+            <Image src="/company_photos/arun2.png" alt="Arun Sam Alfred" fill sizes="(max-width: 768px) 100vw, 300px" className="object-cover" />
           </div>
 
           {/* Visually hidden name for accessibility */}
@@ -344,7 +344,7 @@ export default function CustomerGlobeSection() {
             bumpImageUrl="//unpkg.com/three-globe@2.33.0/example/img/earth-topology.png"
             backgroundImageUrl=""
             backgroundColor="rgba(0,0,0,0)"
-            atmosphereColor="rgba(120,185,255,0.28)"
+            atmosphereColor="rgb(120, 185, 255)"
             atmosphereAltitude={0.22}
             arcsData={ARCS_DATA}
             arcStartLat="startLat"

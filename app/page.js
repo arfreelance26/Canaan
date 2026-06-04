@@ -7,7 +7,6 @@ import FleetSection from "./components/Fleet";
 import ClientsSection from "./components/Client";
 import TimelineSection from "./components/Timeline";
 import ContactSection from "./components/Contact";
-import WorldNetworkSection from "./components/World";
 import GroupSection from "./components/Group";
 
 // Section order
@@ -15,7 +14,6 @@ const SECTIONS = [
   GroupSection,          // 0 — Home
   CustomerGlobeSection,  // 1 — Home
   TimelineSection,       // 2 — Home
-  //WorldNetworkSection,   // 3 — Service
   AboutTeaserSection,    // 4 — About (teaser → links to /about)
   FleetSection,          // 5 — Fleet
   ClientsSection,        // 6 — Clients

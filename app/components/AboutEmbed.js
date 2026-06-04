@@ -4,8 +4,7 @@ import { useRef } from "react";
 import Image from "next/image";
 import { Globe, Award, TrendingUp, Quote } from "lucide-react";
 import useFadeIn from "../hooks/useFadeIn";
-import team1 from "../../company photos/team1.jpeg";
-import arun from "../../company photos/Arun.png";
+
 
 function FounderSection() {
   const sectionRef = useRef(null);
@@ -24,6 +23,7 @@ function FounderSection() {
           src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?q=80&w=2070"
           alt="Canaan Global International"
           fill
+          sizes="100vw"
           className="object-cover absolute inset-0 transition-transform duration-[1.2s] group-hover:scale-105"
         />
         <div className="absolute inset-0 bg-black/45 group-hover:bg-black/50 transition-colors duration-500" />
@@ -42,9 +42,10 @@ function FounderSection() {
             }`}
         >
           <Image
-            src={arun}
+            src="/company_photos/Arun.png"
             alt="Arun Samuel Alfred — Founder"
             fill
+            sizes="(max-width: 1024px) 100vw, 50vw"
             className="object-cover object-top absolute inset-0 transition-transform duration-700 group-hover:scale-105"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/10 to-transparent group-hover:via-black/20 transition-all duration-500" />
@@ -198,9 +199,10 @@ function TeamSection() {
           }`}
       >
         <Image
-          src={team1}
+          src="/company_photos/team1.jpeg"
           alt="Canaan Global International team"
           fill
+          sizes="100vw"
           className="object-cover absolute inset-0 object-center transition-transform duration-[1.2s] group-hover:scale-105"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent group-hover:via-black/30 transition-all duration-500" />

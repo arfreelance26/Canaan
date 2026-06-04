@@ -37,7 +37,7 @@ export default function ServicesPage() {
   const [hovered, setHovered] = useState(null);
 
   return (
-    <main style={{ height: "100vh", display: "flex", flexDirection: "column", background: "#f5f4f0", overflow: "hidden", fontFamily: "inherit" }}>
+    <main style={{ height: "100vh", display: "flex", flexDirection: "column", background: "#f5f4f0", overflow: "scroll", fontFamily: "inherit" }}>
 
       {/* ── Image Header ── */}
       <header style={{ position: "relative", height: "40%", overflow: "hidden", flexShrink: 0 }}>

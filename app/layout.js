@@ -16,11 +16,11 @@ export const viewport = {
 };
 
 export const metadata = {
-  title: "Canaan Global International",
+  title: "Canaan Global",
   description:
-    "Canaan Global International — Freight Forwarders, Customs Brokers & Transporters. Commit · Endure · Achieve · Satisfy. Serving worldwide from Tuticorin, India.",
+    "Canaan Global — Freight Forwarders, Customs Brokers & Transporters. Commit · Endure · Achieve · Satisfy. Serving worldwide from Tuticorin, India.",
   keywords: [
-    "Canaan Global International",
+    "Canaan Global",
     "Freight Forwarders",
     "Customs Brokers",
     "Transporters",
@@ -31,27 +31,33 @@ export const metadata = {
     "Supply Chain",
   ],
   authors: [{ name: "Arun Samuel Alfred" }],
-  creator: "Canaan Global International",
-  publisher: "Canaan Global International",
+  creator: "Canaan Global",
+  publisher: "Canaan Global",
   metadataBase: new URL("https://www.canaanglobal.com"),
+  icons: {
+    icon: "/canaan.png",
+    shortcut: "/canaan.png",
+    apple: "/apple-touch-icon.png",
+  },
   openGraph: {
-    title: "Canaan Global International",
+    title: "Canaan Global",
     description:
       "Freight Forwarders, Customs Brokers & Transporters. Commit · Endure · Achieve · Satisfy.",
     url: "https://www.canaanglobal.com",
-    siteName: "Canaan Global International",
+    siteName: "Canaan Global",
     locale: "en_IN",
     type: "website",
+    images: [{ url: "/canaan.png", width: 256, height: 256, alt: "Canaan favicon" }],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Canaan Global International",
+    title: "Canaan Global",
     description:
       "Freight Forwarders, Customs Brokers & Transporters. Commit · Endure · Achieve · Satisfy.",
   },
   icons: {
-    icon: "/favicon.ico",
-    shortcut: "/favicon.ico",
+    icon: "/canaan.png",
+    shortcut: "/canaan.png",
     apple: "/apple-touch-icon.png",
   },
   contact: {
@@ -71,6 +77,7 @@ export default function RootLayout({ children }) {
       <head>
         {/* Canonical */}
         <link rel="canonical" href="https://www.canaanglobal.com" />
+        <link rel="icon" href="/canaan.png" type="image/png" sizes="any" />
 
         {/* Contact schema — structured data for Google */}
         <script
@@ -79,7 +86,7 @@ export default function RootLayout({ children }) {
             __html: JSON.stringify({
               "@context": "https://schema.org",
               "@type": "Organization",
-              name: "Canaan Global International",
+              name: "Canaan Global",
               alternateName: "Canaan Global",
               url: "https://www.canaanglobal.com",
               logo: "https://www.canaanglobal.com/logo.png",

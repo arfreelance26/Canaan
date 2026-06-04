@@ -200,7 +200,7 @@ export default function ChatbotWidget() {
       {/* ── Chat Window ── */}
       <div
         className={`
-          fixed bottom-24 right-6 z-[9999]
+          fixed bottom-24 right-6 z-[999999]
           w-[360px] max-w-[calc(100vw-2rem)]
           flex flex-col overflow-hidden
           rounded-3xl
@@ -594,7 +594,7 @@ export default function ChatbotWidget() {
 
       {/* ── Floating Trigger Button + Thought Bubble ── */}
       <div
-        className="fixed bottom-6 right-6 z-[9999] flex items-end justify-end"
+        className="fixed bottom-6 right-6 z-[999999] flex items-end justify-end"
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={() => setHovered(false)}
       >
@@ -644,7 +644,7 @@ export default function ChatbotWidget() {
           id="chatbot-trigger"
           onClick={() => setOpen((v) => !v)}
           className={`
-            relative w-16 h-16 rounded-full
+            relative w-16 h-16 rounded-full bg-white
             shadow-[0_8px_24px_rgba(0,0,0,0.22),0_0_18px_6px_rgba(56,139,255,0.28)]
             hover:shadow-[0_12px_36px_rgba(0,0,0,0.32),0_0_28px_10px_rgba(56,139,255,0.42)]
             focus:outline-none focus-visible:ring-4 focus-visible:ring-[#0f2027]/30

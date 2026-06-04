@@ -98,13 +98,15 @@ function makeLabelEl(d) {
 }
 
 export default function CustomerGlobeSection() {
-  const router       = useRouter();
-  const globeRef     = useRef(null);
-  const cleanupRef   = useRef(null);
-  const sectionRef   = useRef(null);
+  const sectionRef = useRef(null);
+  const globeRef   = useRef(null);
+  const cleanupRef = useRef(null);
+  const globeContainerRef = useRef(null);
 
-  const [globeVisible,  setGlobeVisible]  = useState(false);
-  const [sectionIn,     setSectionIn]     = useState(false);
+  const [sectionIn, setSectionIn]       = useState(false);
+  const [globeVisible, setGlobeVisible] = useState(false);
+  const [globeSize, setGlobeSize]       = useState({ width: 0, height: 0 });
+  const router = useRouter();
 
 
   // ── Section entrance: observe + orchestrate animations ──────────
@@ -128,9 +130,21 @@ export default function CustomerGlobeSection() {
           }
         }
       },
-      { threshold: 0.25 }
+      { threshold: 0.2 }
     );
     obs.observe(el);
+    return () => obs.disconnect();
+  }, []);
+
+  // ResizeObserver for responsive Globe size
+  useEffect(() => {
+    if (!globeContainerRef.current) return;
+    const obs = new ResizeObserver((entries) => {
+      if (!entries[0]) return;
+      const { width, height } = entries[0].contentRect;
+      setGlobeSize({ width, height });
+    });
+    obs.observe(globeContainerRef.current);
     return () => obs.disconnect();
   }, []);
 
@@ -276,12 +290,12 @@ export default function CustomerGlobeSection() {
         >
           {/* Portrait */}
           <div style={{ width: 120, height: 120, flexShrink: 0, position: "relative", borderRadius: 9999, overflow: "hidden", boxShadow: "0 8px 24px rgba(0,0,0,0.12)", border: "2px solid rgba(210,165,45,0.10)" }}>
-            <Image src="/company_photos/arun2.png" alt="Arun Sam Alfred" fill sizes="(max-width: 768px) 100vw, 300px" className="object-cover" />
+            <Image src="/company_photos/arun2.png" alt="Arun Samuel Alfred" fill sizes="(max-width: 768px) 100vw, 300px" className="object-cover" />
           </div>
 
           {/* Visually hidden name for accessibility */}
           <div style={{ flex: 1, minWidth: 0 }}>
-            <span style={{ position: "absolute", width: 1, height: 1, padding: 0, margin: -1, overflow: "hidden", clip: "rect(0,0,0,0)", whiteSpace: "nowrap", border: 0 }}>Arun Sam Alfred — Founder & CEO</span>
+            <span style={{ position: "absolute", width: 1, height: 1, padding: 0, margin: -1, overflow: "hidden", clip: "rect(0,0,0,0)", whiteSpace: "nowrap", border: 0 }}>Arun Samuel Alfred — Founder & CEO</span>
           </div>
 
           {/* Arrow / button text */}
@@ -328,18 +342,19 @@ export default function CustomerGlobeSection() {
         </div>
 
         {/* Globe — hidden via opacity until init animation finishes */}
-        <div style={{
+        <div ref={globeContainerRef} style={{
           position: "absolute", inset: 0,
           display: "flex", alignItems: "center", justifyContent: "center",
           opacity: globeVisible ? 1 : 0, transition: "opacity 0.45s ease",
         }}>
-          <Globe
-            ref={(el) => { globeRef.current = el; }}
-            onGlobeReady={handleGlobeReady}
-            animateIn={false}
-            waitForGlobeReady={false}
-            width={700}
-            height={700}
+          {globeSize.width > 0 && (
+            <Globe
+              ref={(el) => { globeRef.current = el; }}
+              onGlobeReady={handleGlobeReady}
+              animateIn={false}
+              waitForGlobeReady={false}
+              width={globeSize.width}
+              height={globeSize.height}
             globeImageUrl="//unpkg.com/three-globe@2.33.0/example/img/earth-blue-marble.jpg"
             bumpImageUrl="//unpkg.com/three-globe@2.33.0/example/img/earth-topology.png"
             backgroundImageUrl=""
@@ -363,8 +378,9 @@ export default function CustomerGlobeSection() {
             htmlAltitude={(d) => d.isHub ? 0.01 : 0.005}
             htmlElement={htmlElement}
             htmlTransitionDuration={0}
-            htmlElementVisibilityModifier={htmlVisibility}
-          />
+              htmlElementVisibilityModifier={htmlVisibility}
+            />
+          )}
         </div>
 
         {/* Bottom-left chip */}

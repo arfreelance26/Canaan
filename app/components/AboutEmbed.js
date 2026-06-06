@@ -209,7 +209,7 @@ function TeamSection() {
 
         <div className="absolute top-0 left-0 bg-white/90 backdrop-blur-sm px-4 py-3 sm:px-7 sm:py-5 rounded-br-2xl z-10">
           <span className="text-[10px] sm:text-xs font-medium tracking-[0.12em] uppercase text-neutral-400">
-            Our Team
+            Our Core Team
           </span>
         </div>
 

@@ -37,7 +37,7 @@ export default function ServicesPage() {
   const [hovered, setHovered] = useState(null);
 
   return (
-    <main style={{ height: "100vh", display: "flex", flexDirection: "column", background: "#f5f4f0", overflow: "scroll", fontFamily: "inherit" }}>
+    <main className="font-sans" style={{ height: "100vh", display: "flex", flexDirection: "column", background: "#f5f4f0", overflow: "scroll" }}>
 
       {/* ── Image Header ── */}
       <header className="services-header" style={{ position: "relative", overflow: "hidden", flexShrink: 0 }}>
@@ -49,10 +49,10 @@ export default function ServicesPage() {
         <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, rgba(13,12,10,0.25) 0%, rgba(13,12,10,0.55) 55%, rgba(13,12,10,0.88) 100%)" }} />
 
         <div style={{ position: "absolute", bottom: 28, left: 40 }}>
-          <p style={{ fontFamily: "'Georgia',serif", fontSize: 9, letterSpacing: "0.22em", textTransform: "uppercase", color: "#c8b98a", margin: "0 0 8px", opacity: 0.9 }}>
+          <p style={{ fontSize: 9, letterSpacing: "0.22em", textTransform: "uppercase", color: "#c8b98a", margin: "0 0 8px", opacity: 0.9 }}>
             Canaan Global International
           </p>
-          <h1 style={{ fontFamily: "'Georgia',serif", fontSize: "clamp(1.8rem, 4.5vw, 3rem)", fontWeight: 700, color: "#fff", letterSpacing: "-0.035em", margin: 0, lineHeight: 1 }}>
+          <h1 style={{ fontSize: "clamp(1.8rem, 4.5vw, 4rem)", fontWeight: 700, color: "#fff", letterSpacing: "-0.035em", margin: 0, lineHeight: 1 }}>
             Our Services
           </h1>
         </div>
@@ -118,7 +118,7 @@ export default function ServicesPage() {
 
               {/* Number + Icon row */}
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                <span style={{ fontFamily: "'Georgia',serif", fontSize: 11, fontWeight: 700, color: on ? "#c8b98a" : "#ccc", letterSpacing: "0.08em", transition: "color 0.3s ease" }}>
+                <span style={{ fontSize: 11, fontWeight: 700, color: on ? "#c8b98a" : "#ccc", letterSpacing: "0.08em", transition: "color 0.3s ease" }}>
                   {svc.num}
                 </span>
                 <div style={{
@@ -133,7 +133,7 @@ export default function ServicesPage() {
               </div>
 
               {/* Title */}
-              <h2 style={{ fontFamily: "'Georgia',serif", fontSize: "0.92rem", fontWeight: 700, color: on ? "#111" : "#333", letterSpacing: "-0.02em", margin: 0, lineHeight: 1.25, transition: "color 0.25s ease" }}>
+              <h2 style={{ fontSize: "0.92rem", fontWeight: 700, color: on ? "#111" : "#333", letterSpacing: "-0.02em", margin: 0, lineHeight: 1.25, transition: "color 0.25s ease" }}>
                 {svc.title}
               </h2>
 

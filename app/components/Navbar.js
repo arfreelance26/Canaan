@@ -14,6 +14,7 @@ function LogoPlaceholder() {
     <img 
       src="/company_photos/companylogo.png" 
       alt="Canaan Logo" 
+      loading="lazy"
       className="h-14 sm:h-[68px] w-auto object-contain ml-2 sm:ml-3"
     />
   );

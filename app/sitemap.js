@@ -1,8 +1,8 @@
 export const dynamic = 'force-static';
 
 export default function sitemap() {
-  const baseUrl = "https://www.canaanglobal.com";
-  
+  const baseUrl = "https://canaaanglobalinternational.com";
+
   return [
     {
       url: `${baseUrl}`,
